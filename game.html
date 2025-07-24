@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuhrache</title>
+
+    <style>
+canvas {
+    background-color: rgba(0,0,0,0.8);
+}
+ </style>
+
+<script>
+let Key_Space=false; // Tase 32
+let Key_UP=false; // Taste 38
+let Key_down=false; // Taste 40
+let canvas;
+let ctx;
+let backgroundimage = new Image();
+
+let cow = {
+    x: 100,
+    y: 200,
+    width: 150,
+    height: 100,
+    src:`img/cow.png`
+}
+
+let chefs = []; 
+
+let shots =[];
+
+
+document.onkeydown=function(e) {
+if (e.keyCode == 32) { // Leertaste gedrückt
+    Key_Space=true;
+}
+
+if (e.keyCode == 38) {// Pfeil oben gedrückt
+    Key_UP=true;
+}
+
+
+if (e.keyCode == 40){ // Pfeil unten gedrückt
+    Key_down=true;
+}
+}
+
+document.onkeyup=function(e) {
+if (e.keyCode == 32) { // Leertaste losgelassen
+    Key_Space=false;
+}
+
+if (e.keyCode == 38){ // Pfeil oben losgelassen
+    Key_UP=false;
+}
+
+if (e.keyCode == 40) {// Pfeil unten losgelassen
+    Key_down=false;
+}
+}
+
+
+function startGame(){
+    canvas = document.getElementById(`canvas`);
+    ctx = canvas.getContext(`2d`);
+    loadimages();
+    setInterval(update, 1000 / 25);
+    setInterval(createchefs, 5000); 
+    setInterval(checkForCollision, 1000 / 25);
+    setInterval(checkForShoot, 1000 / 10);
+
+    draw();
+    //calculate
+
+}
+
+
+function checkForCollision(){
+    chefs.forEach(function(chef){
+        if(cow.x + cow.width > chef.x &&
+        cow.y + cow.height > chef.y &&
+        cow.x < chef.x &&
+        cow.y < chef.y + chef.height
+    ) { 
+        cow.img.src = `img/steak.png`;
+        console.log(`Collision!!!`);
+        chefs = chefs.filter(u => u !== chef);
+
+
+    }
+
+    shots.forEach(function(shot) {
+                    // Kontrollieren, ob Laser mit Rakete kollidiert
+                    if (shot.x + shot.width > chef.x &&
+                        shot.y + shot.height > chef.y &&
+                        shot.x < chef.x &&
+                        shot.y < chef.y + chef.height
+                    ) {
+                        chef.hit = true;
+                        chef.img.src = 'img/steak.png';
+                        console.log('Collision!!!');
+
+                        setTimeout(() => {
+                            chefs = chefs.filter(u => u != chef);
+                        }, 2000);
+                    }
+
+                });
+
+    });
+}
+
+
+
+function createchefs() {
+            let chef = {
+                x: 800,
+                y: Math.random() * 500, // Wir platzieren unsere UFOs an einem zufälligen Ort
+                width: 200,
+                height: 80,
+                src: 'img/chef.png',
+                img: new Image()
+            };
+            chef.img.src = chef.src; // Ufo-Bild wird geladen.
+            chefs.push(chef);
+        }
+    
+    function checkForShoot() {
+            if (Key_Space) {
+                let shot = {
+                    x: cow.x + 110,
+                    y: cow.y + 22,
+                    width: 50,
+                    height: 20,
+                    src: 'img/bullet.png',
+                    img: new Image()
+                };
+                shot.img.src = shot.src; // Laser-Bild wird geladen.
+
+                shots.push(shot);
+            }
+        
+
+}
+
+function update(){
+    if (Key_UP) {
+        cow.y -= 4;
+    }
+    if (Key_down) {
+        cow.y += 4;
+    }
+    
+
+    chefs.forEach(function(chef){
+        if(!chef.hit){
+        chef.x -=5;
+        }
+    });
+
+
+    shots.forEach(function(shot) {
+                shot.x += 15;
+            });
+
+}
+
+function loadimages(){
+    backgroundimage.src=`img/city.png`;
+    cow.img = new Image();
+    cow.img.src = cow.src;
+
+}
+
+function draw(){
+    ctx.drawImage(backgroundimage, 0, 0);
+    ctx.drawImage(cow.img, cow.x, cow.y, cow.width, cow.height);
+    
+    chefs.forEach(function(chef){
+        ctx.drawImage(chef.img, chef.x, chef.y, chef.width, chef.height);
+    });
+
+    shots.forEach(function(shot){
+        ctx.drawImage(shot.img, shot.x, shot.y, shot.width, shot.height);
+    });
+
+    requestAnimationFrame(draw);
+}
+ </script>
+
+</head>
+
+
+<body onload="startGame()">
+    <canvas id="canvas" width="720" height="480"></canvas>
+</body>
+
+
+</html>
